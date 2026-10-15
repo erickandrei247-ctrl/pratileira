@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo da Prateleira</title>
+    <!-- Carregando Tailwind CSS para a estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carregando a fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Ícones para status e categorias (opcional, mas adiciona charme) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Fundo suave */
+        }
+        
+        /* Efeito de hover suave nos cartões */
+        .book-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Simulação de sombra de prateleira abaixo dos títulos das seções */
+        .shelf-divider {
+            height: 4px;
+            background: linear-gradient(to bottom, #cbd5e1 0%, #f8fafc 100%);
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Cabeçalho Principal -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                        <i class="fa-solid fa-book-open text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 leading-tight">Catálogo da Prateleira</h1>
+                        <p class="text-sm text-slate-500">Minha biblioteca pessoal interativa</p>
+                    </div>
+                </div>
+                
+                <!-- Estatísticas Simples (opcional) -->
+                <div class="hidden sm:flex items-center gap-4 text-sm font-medium text-slate-600">
+                    <span id="total-books-counter" class="bg-slate-100 px-3 py-1 rounded-full"><i class="fa-solid fa-layer-group mr-1 text-slate-400"></i> 0 Livros</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Container Principal onde o JS vai injetar as prateleiras -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div id="catalog-container" class="space-y-12">
+            <!-- As seções serão geradas aqui dinamicamente pelo JavaScript -->
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-slate-900 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-400 text-sm">Escaneado via QR Code na Prateleira Principal</p>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * Aqui fica o nosso "Banco de Dados" em formato JSON/Array.
+         * Para adicionar novos livros, basta copiar um bloco {...} e colar abaixo.
+         * As categorias que você colocar aqui criarão novas prateleiras automaticamente.
+         */
+        const libraryData = [
+            // Categoria: Pratileira 1
+            {
+                title: "Dom Quixote",
+                author: "Crevante",
+                category: "Pratileira 1",
+                status: "Lido",
+                cover: "https://www.aabbportoalegre.com.br/intranet/modulos/biblioteca/imgs/5966.jpg"
+            },
+            {
+                title: "A Metamorfose",
+                author: "Franks Kafka",
+                category: "Pratileira 1",
+                status: "Lendo",
+                cover: "https://down-br.img.susercontent.com/file/br-11134207-820ls-mnyqlbjn7n5saf"
+            },
+            {
+                title: "Dom Casmurro",
+                author: "Machado de Assis",
+                category: "Pratileira 1",
+                status: "Lendo",
+                cover: "https://www.estantevirtual.com.br/book/00/0QZ-7012-000/0QZ-7012-000_detail1.jpg?ts=1715049833639"
+            },
+	    {
+                title: "Ressurreição",
+                author: "Machado de Assis",
+                category: "Pratileira 1",
+                status: "Lendo",
+                cover: "https://m.media-amazon.com/images/I/61DouJElapL.jpg"
+            },
+            
+            // Categoria: Literatura e Clássicos
+            {
+                title: "O Conde de Monte Cristo",
+                author: "Alexandre Dumas",
+                category: "Literatura e Clássicos",
+                status: "Lido",
+                cover: "https://placehold.co/300x450/0f172a/ffffff?text=Monte+Cristo"
+            },
+            {
+                title: "Dom Quixote",
+                author: "Miguel de Cervantes",
+                category: "Literatura e Clássicos",
+                status: "Lido",
+                cover: "https://placehold.co/300x450/9a3412/ffffff?text=Dom+Quixote"
+            },
+            {
+                title: "1984",
+                author: "George Orwell",
+                category: "Literatura e Clássicos",
+                status: "Emprestado",
+                cover: "https://placehold.co/300x450/000000/ffffff?text=1984"
+            },
+            {
+                title: "A Metamorfose",
+                author: "Franz Kafka",
+                category: "Literatura e Clássicos",
+                status: "Lido",
+                cover: "https://placehold.co/300x450/52525b/ffffff?text=Metamorfose"
+            },
+
+            // Categoria: Pratileira 5
+            {
+                title: "O Saci",
+                author: "Monteiro Lobato",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRl-1nGVgoJPr91kAqRWbLgkphfWFJjOa58uYZZEyZMvw&s=10"
+            },
+            {
+                title: "Fábulas",
+                author: "Diversos",
+                category: "Pratileira 5",
+                status: "Lendo",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9NYga328YvuR-7_P6_wwykb-rEJCQJVA0LshlFr12Sw&s=10"
+            },
+            {
+                title: "Lolita",
+                author: "Vladimir Nabokov",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJ0_deYQw_XHQluAw9m-1RTBikIFfeWTlJKfi8C4FdVw&s=10"
+            },
+            {
+                title: "Vagabond 8",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5A9p-sYvPxZhDY1Vd1Cpmzw-qFviJYgsNEcPvwx9AnA&s=10"
+            },
+            {
+                title: "Vagabond 9",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTexe_7NBK6ID1YPunX6GZNzZJYRk-EsQJxpajAIDX3HQ&s=10"
+            },
+            {
+                title: "Vagabond 12",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHUclTwovKG4V6itWx80yZmdc5qdH41zfI0SiYrpqa2g&s=10"
+            },
+            {
+                title: "Vagabond 13",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTb1tHUxqD7YLx81vlypiULDaJRykrM5XFIaQ1OdTZqZg&s=10"
+            },
+            {
+                title: "Vagabond 14",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDghB-B-7lgQLdga-ZLjpZ-ekuavpaM0vHMotBgHDOWg&s=10"
+            },
+            {
+                title: "Vagabond 15",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5iY8CiWDWqYQIFhbrN_OLI7DuHfblAZqbYGrKFzOpjg&s=10"
+            },
+            {
+                title: "Vagabond 26",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROnicZ9ooDg-qYEWSNbNe8_xlCPGTsax6wo4c-Vmfysg&s=10"
+            },
+            {
+                title: "Vagabond 28",
+                author: "Takehiko Inou",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU8mxEhbay1GadcWG4wLXn_CyRzoqnSYwczFSH6sP5mg&s=10"
+            },
+            {
+                title: "Terraformars 1",
+                author: "Kenichi Tachibana",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTOFsZOje5J8yeJR6Y6O6gJXr_E3rNbcOl2nE9GgWsgQ&s=10"
+            },
+            {
+                title: "Terraformars 2",
+                author: "Kenichi Tachibana",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOcMa9wP-oFRB4WjAN5GeYVJptx-aocNpwCXRyti0oUg&s"
+            },
+            {
+                title: "Terraformars 3",
+                author: "Kenichi Tachibana",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQk1tB_PqSiFNZGKSRiJIXlco9Mmzmbv25L_Rw79kwJNw&s=10"
+            },
+            {
+                title: "Terraformars 4",
+                author: "Kenichi Tachibana",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8F6mH-_QDQ3En2_Fk2N-UHrCiH8vASLLjzn8FyFiZ8Q&s"
+            },
+            {
+                title: "Terraformars 5",
+                author: "Kenichi Tachibana",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR36BOBi144c_VIpcnC51x4VYtS4BsmdkGSKcsqPtew6w&s"
+            },
+            {
+                title: "Terraformars 6",
+                author: "Kenichi Tachibana",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTH8R1X0m65KQh7RC-CbziTQhzXUzgvc0C4_gBe79wJUA&s=10"
+            },
+            {
+                title: "Demon Slayer 1",
+                author: "Koyoharu Gotōge",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYSXCovQTEO3mu8-JuZLXIC9pOFCPodwkPLZjIsSVrsg&s=10"
+            },
+            {
+                title: "Demon Slayer 2",
+                author: "Koyoharu Gotōge",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw_QGv0wJXLYVRW6lij2lgX8d5SknxNSKlMoOoAfRFSA&s=10"
+            },
+            {
+                title: "Demon Slayer 3",
+                author: "Koyoharu Gotōge",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEpTQFo7r6MhIo2PcD3Ivq3AXu6OI-1WhgZrI6AynyAQ&s=10"
+            },
+            {
+                title: "Demon Slayer 4",
+                author: "Koyoharu Gotōge",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrqrdFbUJL7P1D1FPrWSHcxMMmlhfmwb3Nc8MJkvWfEw&s"
+            },
+            {
+                title: "Princess 1",
+                author: "Courtney Love",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQ-bCW-EpHTkQx9I_4_OAtM-B1qiMMjplEDWjxv09SMw&s=10"
+            },
+            {
+                title: "Princess 2",
+                author: "Courtney Love",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqGOCumIjRM8i_4nbnNeWHF6jI1WVdIOE9mkSI_MZgCg&s=10"
+            },
+            {
+                title: "Digude",
+                author: "Vinicius de Souza",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQ6dIvjinF_pIp0Ta5j2zKH4QO2MTeWS_4Mv6yTUQkSA&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 1",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTomfdJMj6aTbI3rLnY9LopdiHUhwlukKcYxRf8S1dMnA&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 2",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPtKC59jAspWiMVYEkzkpF7aVHBN_SdC13jeHwiFbQUA&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 3",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrfrdWLLTVYF3f30a-y4ABOQDz28r-gE_IQ3eXlqujHQ&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 4",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9_6h5JSku29yn_lSg3GlMjN8KfIWsMhq1Qtc5-ljGnQ&s"
+            },
+            {
+                title: "Fullmetal Alchemist 5",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8Lw6GmzFgqzgIKc8GCmn1Jq-4Ci2YrfrEqqUiHWnYuw&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 6",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKP_R2heRfOU9lDsrFn2FsWETwgofcUf2MfVxkWSGHMw&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 7",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqHp9lwNVI8-oPvS_aOHYUQBGyhncOAgeKNtSoEJ9NUQ&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 8",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLqL3JX5OwOnAVOwCBaIzgLPykZ1RsbMnxyKwkKnMAnQ&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 9",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3rar09BS9ynFniLeWAoRVl05LOwEvCPSSHyA-NvOung&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 10",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvnGTthkiMunWp818IVipT-oHelUFxdLBHCX98Ior2Bw&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 11",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT260JDp8Uq2tciXV4kiLOIAyPPF8jvwyxAU8qfPnoJ9Q&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 12",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8nESubEWZTkdvhx8SqSwaVWr92kYWhTHOHsWaBgD_5g&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 13",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCq_RZbRFVwITwqnbYLxR6VVMF4bO35EPQqp4cJu951Q&s"
+            },
+            {
+                title: "Fullmetal Alchemist 14",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2yd2Mk02t1I9C1kNPnmzHdQEVXvhyZdZvqeBE1J7wFg&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 15",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTn785wvWIgjlZ4TJlQrIcid6nu_V-_Q3q60Vh74Fsabg&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 16",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSE5VVLeoLHQ4b4sZGlV5UsIoTh0s-bwv2jrNq2UUlB0Q&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 17",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdSUrUNk2xyYiukRaA-t8R3AAhYRqUF77gztixpFqikQ&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 18",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2v9pU_mfmW3a39r1XuPMv-64pI33Fo3LvIFKG8QarkQ&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 19",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUcTZ-Moz7sGR23ugnNOVvA6PQMKjlrejU_PPo23kohw&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 20",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSbUHJKEpX3cjmBZfSzmaRlS4Un3xB1t926rSA6KDCUg&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 21",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2FQ_uJYDvnllGVvzrfaxyKxRmMK4KtnZcvgGaZ_mWZw&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 22",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsiZ7VO-XXf2vtPqSmLtcnTl6cB8jHXJLu5MI_zq0gvg&s=10"
+            },
+            {
+                title: "Fullmetal Alchemist 23",
+                author: "Hiromu Arakawa",
+                category: "Pratileira 5",
+                status: "Lido",
+                cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgYLljnhOANnJby5yBoVdfpZGUtyQgQn7daARYdW793w&s=10"
+            },
+        ];
+
+        // Função utilitária para definir a cor e ícone do badge de status
+        function getStatusStyles(status) {
+            switch(status.toLowerCase()) {
+                case 'lido':
+                    return {
+                        bg: 'bg-emerald-100', text: 'text-emerald-800', border: 'border-emerald-200', icon: 'fa-check-circle'
+                    };
+                case 'lendo':
+                    return {
+                        bg: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-200', icon: 'fa-book-open-reader'
+                    };
+                case 'emprestado':
+                    return {
+                        bg: 'bg-amber-100', text: 'text-amber-800', border: 'border-amber-200', icon: 'fa-hand-holding-hand'
+                    };
+                default:
+                    return {
+                        bg: 'bg-slate-100', text: 'text-slate-800', border: 'border-slate-200', icon: 'fa-bookmark'
+                    };
+            }
+        }
+
+        // Função principal para renderizar o catálogo
+        function renderCatalog() {
+            const container = document.getElementById('catalog-container');
+            container.innerHTML = ''; // Limpa o container
+
+            // Atualiza o contador de livros no cabeçalho
+            const totalBooksEl = document.getElementById('total-books-counter');
+            if(totalBooksEl) totalBooksEl.innerHTML = `<i class="fa-solid fa-layer-group mr-1 text-slate-400"></i> ${libraryData.length} Livros`;
+
+            // Agrupa os livros por categoria
+            const categories = [...new Set(libraryData.map(book => book.category))];
+
+            categories.forEach(category => {
+                // Filtra os livros que pertencem a esta categoria
+                const categoryBooks = libraryData.filter(book => book.category === category);
+
+                // Cria o HTML da Seção (Prateleira)
+                const sectionHtml = `
+                    <section class="book-category">
+                        <div class="mb-4 flex items-baseline gap-3">
+                            <h2 class="text-xl sm:text-2xl font-bold text-slate-800">${category}</h2>
+                            <span class="text-xs font-medium bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">${categoryBooks.length}</span>
+                        </div>
+                        <div class="shelf-divider"></div>
+                        
+                        <!-- Grid de Cartões -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                            ${categoryBooks.map(book => {
+                                const statusStyle = getStatusStyles(book.status);
+                                
+                                return `
+                                    <div class="book-card bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
+                                        <!-- Capa -->
+                                        <div class="relative pt-[150%] sm:pt-[140%] w-full bg-slate-100">
+                                            <img 
+                                                src="${book.cover}" 
+                                                alt="Capa do livro ${book.title}"
+                                                class="absolute inset-0 w-full h-full object-cover shadow-inner"
+                                                loading="lazy"
+                                                onerror="this.src='https://placehold.co/300x450/e2e8f0/64748b?text=Sem+Capa'"
+                                            >
+                                        </div>
+                                        
+                                        <!-- Informações do Livro -->
+                                        <div class="p-3 sm:p-4 flex flex-col flex-grow">
+                                            <h3 class="font-bold text-sm sm:text-base text-slate-900 leading-snug mb-1 line-clamp-2" title="${book.title}">
+                                                ${book.title}
+                                            </h3>
+                                            <p class="text-xs sm:text-sm text-slate-500 mb-3 line-clamp-1" title="${book.author}">
+                                                ${book.author}
+                                            </p>
+                                            
+                                            <!-- Status -->
+                                            <div class="mt-auto">
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] sm:text-xs font-semibold uppercase tracking-wider border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}">
+                                                    <i class="fa-solid ${statusStyle.icon}"></i>
+                                                    ${book.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </section>
+                `;
+
+                // Injeta a seção no container
+                container.insertAdjacentHTML('beforeend', sectionHtml);
+            });
+        }
+
+        // Inicializa o app quando a página carregar
+        window.addEventListener('DOMContentLoaded', renderCatalog);
+    </script>
+</body>
+</html>
